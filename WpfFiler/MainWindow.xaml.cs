@@ -44,33 +44,30 @@ namespace WpfFiler
         }
 
         private ConfigureWpfFiler config;
-
-        private System.Drawing.Icon ExtractIcon(string file, uint size, bool largeIcon)
+        
+        /*!
+         * \return This function will never return null.
+         */
+        private System.Drawing.Icon GetAssociatedIcon(string file, bool largeIcon)
         {
-            IntPtr large;
-            IntPtr small;
             int dot = file.LastIndexOf('.');
             if (dot == -1)
-                return config.DefaultIcon;
+                return config.DefaultFileIcon;
             try
             {
                 FileAssociationInfo fai = new FileAssociationInfo(file.Substring(dot));
                 ProgramAssociationInfo pai = new ProgramAssociationInfo(fai.ProgID);
                 ProgramIcon icon = pai.DefaultIcon;
                 //ExtractIconEx(file, number, out large, out small, 1);
-                Win32API.SHDefExtractIcon(icon.Path, icon.Index, 0, out large, out small, size);
-                try
-                {
-                    return System.Drawing.Icon.FromHandle(largeIcon ? large : small);
-                }
-                catch
-                {
-                    return null;
-                }
+                System.Drawing.Icon ico = Win32API.ExtractIcon(icon.Path, icon.Index, largeIcon);
+                if (ico == null)
+                    return config.DefaultFileIcon;
+                else
+                    return ico;
             }
             catch
             {
-                return config.DefaultIcon;
+                return config.DefaultFileIcon;
             }
         }
 
@@ -127,15 +124,11 @@ namespace WpfFiler
                 stack.MouseLeave += stack_MouseLeave;
 
                 if ((file.Attributes & FileAttributes.Directory) == FileAttributes.Directory)
-                    ico = config.FolderIcon;
+                    ico = config.DefaultFolderIcon;
                 else
                 {
-
                     //Win32API.SHGetFileInfo(file.FullName, 0, ref fInfo, (uint)Marshal.SizeOf(fInfo), 0);
-
-                    ico = ExtractIcon(file.Name, (uint)config.IconSize, true);
-                    if (ico == null)
-                        ico = config.DefaultIcon;
+                    ico = GetAssociatedIcon(file.Name, true);
                 }
                 //    ico = System.Drawing.Icon.ExtractAssociatedIcon(file.FullName);
 

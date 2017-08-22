@@ -64,12 +64,12 @@ nIcons[in]:
     /*!
     * \return This function returns an icon or null
     */
-    public static System.Drawing.Icon ExtractIcon(string file, int index, uint size, bool largeIcon)
+    public static System.Drawing.Icon ExtractIcon(string file, int index, bool largeIcon)
     {
         IntPtr large;
         IntPtr small;
         //ExtractIconEx(file, number, out large, out small, 1);
-        SHDefExtractIcon(file, index, 0, out large, out small, size);
+        SHDefExtractIcon(file, index, 0, out large, out small, 1);
         try
         {
             return System.Drawing.Icon.FromHandle(largeIcon ? large : small);

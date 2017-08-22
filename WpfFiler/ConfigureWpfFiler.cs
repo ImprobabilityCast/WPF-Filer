@@ -9,12 +9,12 @@ using System.Windows.Media.Imaging;
 
 namespace WpfFiler
 {
-    public class ConfigureWpfFiler
+    public class ConfigureWpfFiler : Attributes
     {
         private string path;
         private FileInfo info;
         private FileStream fs;
-        private Attributes attributes;
+        //private Attributes attributes;
 
         private MessageBoxResult ShowErrorMessage(string message)
         {
@@ -25,21 +25,31 @@ namespace WpfFiler
                                    );
         }
 
+        
+
         public ConfigureWpfFiler()
         {
             path = "./WpfFiler.conf";
             info = new FileInfo(path);
-            attributes = new Attributes();
+            DefaultConfiguration();
         }
+
         public ConfigureWpfFiler(string config_path)
         {
             path = config_path;
             info = new FileInfo(path);
-            attributes = new Attributes();
+            DefaultConfiguration();
         }
+
+        /*!
+         * Everything is initialized to the default values.
+         */
         public void DefaultConfiguration()
         {
-            attributes = new Attributes();
+            background = new Background();
+            default_icon = new DefaultIcon();
+            folder_icon = new FolderIcon();
+            hover_background = new HoverBackground();
         }
 
         public void SaveConfiguration()
@@ -69,7 +79,7 @@ namespace WpfFiler
                             continue;
                         }
                         chunks[0] = chunks[0].Trim();
-                        string val = attributes.GetValueString(chunks[0]);
+                        string val = GetValueString(chunks[0]);
                         if (val == null)
                             output += chunks[0] + ": " + chunks[1];
                         else
@@ -80,7 +90,7 @@ namespace WpfFiler
                     }
                 }
                 else
-                    output = attributes.GetAllAttributes();
+                    output = GetAllAttributes();
                 fs = new FileStream(path, FileMode.Create, FileAccess.Write);
                 UTF8Encoding encoder = new UTF8Encoding(true);
                 fs.Write(encoder.GetBytes(output), 0, output.Length);
@@ -109,7 +119,6 @@ namespace WpfFiler
             UTF8Encoding encoder = new UTF8Encoding(true);
             string[] conf = encoder.GetString(tmp).Split(seperators, StringSplitOptions.RemoveEmptyEntries);
             string err_msg = "";
-            int err_msg_old_len;
             for (long line = 0; line < conf.LongLength; line++)
             {
                 string[] separators2 = { ":", ";" };
@@ -117,10 +126,9 @@ namespace WpfFiler
 
                 if (pairs.Length < 2)
                     continue;
-                err_msg_old_len = err_msg.Length;
-                err_msg += SetAttribute(pairs[0].Trim(), pairs[1].Trim());
-                if (err_msg_old_len != err_msg.Length)
-                    err_msg += " : From line " + (line + 1) + "\r\n";
+                if( !SetAttribute( pairs[0].Trim(), pairs[1].Trim() ) )
+                    err_msg += "unable to set attribute '" + pairs[0].Trim() + "' from line " + (line + 1) + 
+                                " to '" + pairs[1].Trim() + "'\r\n";
             }
             if (err_msg.Length != 0)
                 ShowErrorMessage(err_msg);

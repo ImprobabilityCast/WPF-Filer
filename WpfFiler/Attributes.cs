@@ -63,20 +63,21 @@ namespace WpfFiler
     {
         protected string path;
         protected int index;
+        protected uint icon_size;
 
         protected void SetIcon()
         {
-            Value = Win32API.ExtractIcon(path, index, IconSize, true);
+            Value = Win32API.ExtractIcon(path, index, true);
         }
         /*!
          * Setting this property will result in an attempt to load a new icon.
          */
         public uint IconSize
         {
-            get { return IconSize; }
+            get { return icon_size; }
             set
             {
-                IconSize = value;
+                icon_size = value;
                 SetIcon();
             }
         }
@@ -132,19 +133,23 @@ namespace WpfFiler
         public new const string Key = "FolderIcon";
         public FolderIcon()
         {
+            Default();
+        }
+        public override void Default()
+        {
             path = "shell32.dll";
             index = 4;
             IconSize = 64;
-            Default();
+            SetIcon();
         }
     }
 
     public class Attributes
     {
-        private Background background;
-        private DefaultIcon default_icon;
-        private FolderIcon folder_icon;
-        private HoverBackground hover_background;
+        protected Background background;
+        protected DefaultIcon default_icon;
+        protected FolderIcon folder_icon;
+        protected HoverBackground hover_background;
         
         // Properties to make access easier
         public SolidColorBrush BackgroundBrush
@@ -235,19 +240,16 @@ namespace WpfFiler
                 case HoverBackground.Key:
                     hover_background.SetValue(value);
                     break;
+                case "IconSize":
+                    uint siz = 0;
+                    if (!uint.TryParse(value, out siz))
+                        return false;
+                    IconSize = siz;
+                    break;
                 default:
                     return false;
             }
             return true;
-        }
-        public bool SetAttribute(string key, uint value)
-        {
-            if (key == "IconSize")
-            {
-                IconSize = value;
-                return true;
-            }
-            else return false;
         }
     }
 }

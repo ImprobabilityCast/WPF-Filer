@@ -59,6 +59,10 @@
     <Compile Include="RegistryWrapper.cs" />
     <Compile Include="ShellNotification.cs" />
     <Compile Include="Win32API.cs" />
+    <Page Include="CloseableTab.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
