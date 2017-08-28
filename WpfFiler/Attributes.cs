@@ -6,31 +6,30 @@ using System.Windows.Media.Imaging;
 
 namespace WpfFiler
 {
-    public abstract class Attribute<T>
+    interface Attribute<T>
     {
-        public const string Key = null;
-        public virtual T Value { get; set; }
-        public abstract bool SetValue(string value);
-        public abstract void Default();
-        public abstract string GetValueString();
+        T Value { get; set; }
+        bool SetValue(string value);
+        void Default();
+        string GetValueString();
     }
 
     public class Background : Attribute<SolidColorBrush>
     {
-        public new const string Key = "Background";
-        public override SolidColorBrush Value { get; set; }
+        public const string KEY = "Background";
+        public SolidColorBrush Value { get; set; }
         public Background()
         {
             Default();
         }
-        public override void Default()
+        public virtual void Default()
         {
             Value = Brushes.White;
         }
         /*!
          * \return true if successful, false otherwise
          */
-        public override bool SetValue(string value)
+        public bool SetValue(string value)
         {
             Color color = (Color)ColorConverter.ConvertFromString(value);
             if (color != null)
@@ -40,7 +39,7 @@ namespace WpfFiler
                     Default();
             return (color != null);
         }
-        public override string GetValueString()
+        public  string GetValueString()
         {
             return Value.ToString();
         }
@@ -48,7 +47,7 @@ namespace WpfFiler
 
     public class HoverBackground : Background
     {
-        public new const string Key = "HoverBackground";
+        public new const string KEY = "HoverBackground";
         public HoverBackground()
         {
             Default();
@@ -82,13 +81,13 @@ namespace WpfFiler
             }
         }
 
-        public new const string Key = "DefaultIcon";
-        public override System.Drawing.Icon Value { get; set; }
+        public const string KEY = "DefaultIcon";
+        public  System.Drawing.Icon Value { get; set; }
         public DefaultIcon()
         {
             Default();
         }
-        public override void Default()
+        public virtual void Default()
         {
             path = "shell32.dll";
             index = 1;
@@ -101,7 +100,7 @@ namespace WpfFiler
          * @param value Expected value syntax: "path index". 
          * \return Returns false when invaild arguments are passed, true otherwise.
          */
-        public override bool SetValue(string value)
+        public bool SetValue(string value)
         {
             string[] array = value.Split(' ');
             if((array.Length == 2) &&
@@ -122,7 +121,7 @@ namespace WpfFiler
                 return false;
             }
         }
-        public override string GetValueString()
+        public  string GetValueString()
         {
             return path + " " + index + " " + IconSize;
         }
@@ -130,7 +129,7 @@ namespace WpfFiler
 
     public class FolderIcon : DefaultIcon
     {
-        public new const string Key = "FolderIcon";
+        public new const string KEY = "FolderIcon";
         public FolderIcon()
         {
             Default();
@@ -191,12 +190,12 @@ namespace WpfFiler
         public string GetAllAttributes()
         {
             return
-                Background.Key + ": " + background.GetValueString() + "\r\n" +
+                Background.KEY + ": " + background.GetValueString() + "\r\n" +
                 "; Icons are specified with the following syntax:\r\n" +
                 "; Attribute: path-to-icon-file index-of-icon\r\n" +
-                DefaultIcon.Key + ": " + default_icon.GetValueString() + "\r\n" +
-                FolderIcon.Key + ": " + folder_icon.GetValueString() + "\r\n" +
-                HoverBackground.Key + ": " + hover_background.GetValueString() + "\r\n" +
+                DefaultIcon.KEY + ": " + default_icon.GetValueString() + "\r\n" +
+                FolderIcon.KEY + ": " + folder_icon.GetValueString() + "\r\n" +
+                HoverBackground.KEY + ": " + hover_background.GetValueString() + "\r\n" +
                 "IconSize: " + IconSize + "\r\n";
         }
         /*!
@@ -207,13 +206,13 @@ namespace WpfFiler
         {
             switch (key)
             {
-                case Background.Key:
+                case Background.KEY:
                     return background.GetValueString();
-                case DefaultIcon.Key:
+                case DefaultIcon.KEY:
                     return default_icon.GetValueString();
-                case FolderIcon.Key:
+                case FolderIcon.KEY:
                     return folder_icon.GetValueString();
-                case HoverBackground.Key:
+                case HoverBackground.KEY:
                     return hover_background.GetValueString();
                 default:
                     return null;
@@ -228,16 +227,16 @@ namespace WpfFiler
         {
             switch (key)
             {
-                case Background.Key:
+                case Background.KEY:
                     background.SetValue(value);
                     break;
-                case DefaultIcon.Key:
+                case DefaultIcon.KEY:
                     default_icon.SetValue(value);
                     break;
-                case FolderIcon.Key:
+                case FolderIcon.KEY:
                     folder_icon.SetValue(value);
                     break;
-                case HoverBackground.Key:
+                case HoverBackground.KEY:
                     hover_background.SetValue(value);
                     break;
                 case "IconSize":
