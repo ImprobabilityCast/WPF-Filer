@@ -105,9 +105,21 @@ namespace WpfFiler
                 Tabs.Items.Add(tab);
             tab.Focus();
         }
-
+        /*
+         * Creates a stack panel for each file or directory in the directory
+         * pointed to by @oaram info and inserts each one into @param tab.
+         * The stack panel contains the default file or directory icon and the file or
+         * directory name.
+         * @param tab Closeable tab to populate
+         * @param info DirectoryInfo object to get all the file and directory info from.
+         */
         private void Populate(CloseableTab tab, DirectoryInfo info)
         {
+            // TO DO: 
+            //          Split into smaller methods.
+            //          Account for forbidden folders/files
+            //          Add caching in some form. DB perhaps?
+            //
             //if(info.GetAccessControl())
             tab.Title = info.Name;
             tab.GetWrapPanel().Children.Clear();
