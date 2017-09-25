@@ -105,6 +105,43 @@ namespace WpfFiler
                 Tabs.Items.Add(tab);
             tab.Focus();
         }
+
+        private void ConfigureStackPanel(StackPanel stack, FileSystemInfo file)
+        {
+            stack.Orientation = Orientation.Vertical;
+            stack.Margin = new Thickness(4);
+            stack.Width = config.IconSize;
+            stack.Tag = file;
+            stack.MouseEnter += stack_MouseEnter;
+            stack.MouseLeave += stack_MouseLeave;
+        }
+
+        private void ConfigureImage(Image img, FileSystemInfo file)
+        {
+            System.Drawing.Icon ico;
+
+            if ((file.Attributes & FileAttributes.Directory) == FileAttributes.Directory)
+                ico = config.DefaultFolderIcon;
+            else
+            {
+                //Win32API.SHGetFileInfo(file.FullName, 0, ref fInfo, (uint)Marshal.SizeOf(fInfo), 0);
+                ico = GetAssociatedIcon(file.Name, true);
+            }
+            //    ico = System.Drawing.Icon.ExtractAssociatedIcon(file.FullName);
+
+            BitmapSource bmp = Imaging.CreateBitmapSourceFromHIcon(
+                                        ico.Handle, Int32Rect.Empty,
+                                        BitmapSizeOptions.FromEmptyOptions()
+                                        );
+            ico.Dispose();
+            img.Source = bmp;
+            img.Width = config.IconSize;
+            img.Height = config.IconSize;
+            img.HorizontalAlignment = HorizontalAlignment.Center;
+            img.VerticalAlignment = VerticalAlignment.Center;
+        }
+
+
         /*
          * Creates a stack panel for each file or directory in the directory
          * pointed to by @oaram info and inserts each one into @param tab.
@@ -116,47 +153,24 @@ namespace WpfFiler
         private void Populate(CloseableTab tab, DirectoryInfo info)
         {
             // TO DO: 
-            //          Split into smaller methods.
             //          Account for forbidden folders/files
             //          Add caching in some form. DB perhaps?
             //
             //if(info.GetAccessControl())
-            tab.Title = info.Name;
+            
+
+            //tab.Title = info.Name;
             tab.GetWrapPanel().Children.Clear();
             foreach(FileSystemInfo file in info.GetFileSystemInfos())
             {
                 StackPanel stack = new StackPanel();
                 Image img = new Image();
-                System.Drawing.Icon ico;
-                stack.Orientation = Orientation.Vertical;
-                stack.Margin = new Thickness(4);
-                stack.Width = config.IconSize;
-                stack.Tag = file;
-                stack.MouseEnter += stack_MouseEnter;
-                stack.MouseLeave += stack_MouseLeave;
-
-                if ((file.Attributes & FileAttributes.Directory) == FileAttributes.Directory)
-                    ico = config.DefaultFolderIcon;
-                else
-                {
-                    //Win32API.SHGetFileInfo(file.FullName, 0, ref fInfo, (uint)Marshal.SizeOf(fInfo), 0);
-                    ico = GetAssociatedIcon(file.Name, true);
-                }
-                //    ico = System.Drawing.Icon.ExtractAssociatedIcon(file.FullName);
-
-                BitmapSource bmp = Imaging.CreateBitmapSourceFromHIcon(
-                                            ico.Handle, Int32Rect.Empty,
-                                            BitmapSizeOptions.FromEmptyOptions()
-                                            );
-                ico.Dispose();
-                img.Source = bmp;
-                img.Width = config.IconSize;
-                img.Height = config.IconSize;
-                img.HorizontalAlignment = HorizontalAlignment.Center;
-                img.VerticalAlignment = VerticalAlignment.Center;
-                stack.Children.Add(img);
-
                 TextBlock tb = new TextBlock();
+
+                ConfigureStackPanel(stack, file);
+                ConfigureImage(img, file);
+                stack.Children.Add(img);
+                
                 tb.Text = file.Name;
                 tb.TextAlignment = TextAlignment.Center;
                 tb.TextWrapping = TextWrapping.Wrap;

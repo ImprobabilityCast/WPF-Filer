@@ -121,12 +121,19 @@ namespace WpfFiler
             string err_msg = "";
             for (long line = 0; line < conf.LongLength; line++)
             {
-                string[] separators2 = { ":", ";" };
-                string[] pairs = conf[line].Split(separators2, StringSplitOptions.RemoveEmptyEntries);
+                int commentIndex = conf[line].IndexOf(';');
+                string pair;
+                if (commentIndex != -1)
+                   pair = conf[line].Substring(0, commentIndex);
+                else
+                    pair = conf[line];
+
+                string[] pairs = pair.Split(':');
 
                 if (pairs.Length < 2)
                     continue;
-                if( !SetAttribute( pairs[0].Trim(), pairs[1].Trim() ) )
+
+                if (!SetAttribute( pairs[0].Trim(), pairs[1].Trim() ) )
                     err_msg += "unable to set attribute '" + pairs[0].Trim() + "' from line " + (line + 1) + 
                                 " to '" + pairs[1].Trim() + "'\r\n";
             }
