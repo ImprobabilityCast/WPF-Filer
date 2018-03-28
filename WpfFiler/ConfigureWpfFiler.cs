@@ -52,6 +52,8 @@ namespace WpfFiler
             hover_background = new HoverBackground();
         }
 
+        // Fixme! fix this so that is saves lines with ';' preceding ':' properly
+        // currently, it leaves off the ';'
         public void SaveConfiguration()
         {
             try
