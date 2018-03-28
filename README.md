@@ -1,6 +1,5 @@
-# WpfFiler
-Here we are again
+# WPF Filer
 
-This is supposed to be a file manager.
+Simple file manager witten to gain experience with Windows Presentation Foundation.
 
-TO DO: attributes base class to interface
+It's turning out better than expected at this point.
