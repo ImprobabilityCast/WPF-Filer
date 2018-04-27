@@ -1,73 +1,58 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace WpfFiler
 {
-    interface Attribute<T>
+    interface IAttribute<T>
     {
         T Value { get; set; }
-        bool SetValue(string value);
-        void Default();
-        string GetValueString();
+        bool SetFromString(string value);
     }
 
-    public class Background : Attribute<SolidColorBrush>
+    public class Background : IAttribute<SolidColorBrush>
     {
-        public const string KEY = "Background";
         public SolidColorBrush Value { get; set; }
         public Background()
         {
-            Default();
-        }
-        public virtual void Default()
-        {
             Value = Brushes.White;
         }
+        public Background(SolidColorBrush brush)
+        {
+            Value = brush;
+        }
+
         /*!
          * \return true if successful, false otherwise
          */
-        public bool SetValue(string value)
+        public bool SetFromString(string value)
         {
-            Color color = (Color)ColorConverter.ConvertFromString(value);
+            Color color = (Color) ColorConverter.ConvertFromString(value);
             if (color != null)
                 Value = new SolidColorBrush(color);
-            else
-                if(Value != null)
-                    Default();
             return (color != null);
         }
-        public  string GetValueString()
+        public override string ToString()
         {
             return Value.ToString();
         }
     }
-
-    public class HoverBackground : Background
-    {
-        public new const string KEY = "HoverBackground";
-        public HoverBackground()
-        {
-            Default();
-        }
-        public override void Default()
-        {
-            Value = Brushes.AliceBlue;
-        }
-    }
     
-    public class DefaultIcon : Attribute<System.Drawing.Icon>
+    public class DefaultIcon : IAttribute<System.Drawing.Icon>
     {
         protected string path;
         protected int index;
         protected uint icon_size;
 
-        protected void SetIcon()
+        protected bool SetIcon()
         {
-            Value = Win32API.ExtractIcon(path, index, true);
+            System.Drawing.Icon ico = Win32API.ExtractIcon(path, index, true);
+            bool result = (ico != null);
+            if (result)
+                Value = ico;
+            return result;
         }
+
         /*!
          * Setting this property will result in an attempt to load a new icon.
          */
@@ -80,9 +65,8 @@ namespace WpfFiler
                 SetIcon();
             }
         }
-
-        public const string KEY = "DefaultIcon";
-        public  System.Drawing.Icon Value { get; set; }
+        
+        public System.Drawing.Icon Value { get; set; }
         public DefaultIcon()
         {
             Default();
@@ -94,42 +78,36 @@ namespace WpfFiler
             IconSize = 64;
             SetIcon();
         }
+
         /*!
          * Sets the icon for the class. The icon will have the size set by 'SetSize'
          * or it will default to 64px. Invailid argumants will result in the default icon being set.
          * @param value Expected value syntax: "path index". 
          * \return Returns false when invaild arguments are passed, true otherwise.
          */
-        public bool SetValue(string value)
+        public bool SetFromString(string value)
         {
             string[] array = value.Split(' ');
-            if((array.Length == 2) &&
-                (int.TryParse(array[1], out index)) )
+            if((array.Length == 2) && int.TryParse(array[1], out index))
             {
                 path = array[0];
-                SetIcon();
-                if (Value == null)
-                {
+                if (!SetIcon())
                     Default();
-                    return false;
-                }
                 else return true;
             }
             else
-            {
                 Default();
-                return false;
-            }
+            return false;
         }
-        public  string GetValueString()
+
+        public override string ToString()
         {
-            return path + " " + index + " " + IconSize;
+            return path + " " + index;
         }
     }
 
     public class FolderIcon : DefaultIcon
     {
-        public new const string KEY = "FolderIcon";
         public FolderIcon()
         {
             Default();
@@ -145,79 +123,65 @@ namespace WpfFiler
 
     public class Attributes
     {
-        protected Background background;
-        protected DefaultIcon default_icon;
-        protected FolderIcon folder_icon;
-        protected HoverBackground hover_background;
+        public Background background;
+        public DefaultIcon default_icon;
+        public FolderIcon folder_icon;
+        public Background hover_background;
         
-        // Properties to make access easier
-        public SolidColorBrush BackgroundBrush
-        {
-            get { return background.Value; }
-        }
-        public System.Drawing.Icon DefaultFileIcon
-        {
-            get { return default_icon.Value; }
-        }
-        public System.Drawing.Icon DefaultFolderIcon
-        {
-            get { return folder_icon.Value; }
-        }
-        public SolidColorBrush HoverBackgroundBrush
-        {
-            get { return hover_background.Value; }
-        }
-        public uint IconSize
-        {
-            get { return default_icon.IconSize; }
-            set
-            {
-                default_icon.IconSize = value;
-                folder_icon.IconSize = value;
-            }
-        }
-
+        
         /*!
          * Everything is initialized to the default values.
          */
         public Attributes()
         {
             background = new Background();
+            hover_background = new Background(Brushes.AliceBlue);
             default_icon = new DefaultIcon();
             folder_icon = new FolderIcon();
-            hover_background = new HoverBackground();
         }
-        public string GetAllAttributes()
+
+        public string[] GetAllAttributes()
         {
-            return
-                Background.KEY + ": " + background.GetValueString() + "\r\n" +
-                "; Icons are specified with the following syntax:\r\n" +
-                "; Attribute: path-to-icon-file index-of-icon\r\n" +
-                DefaultIcon.KEY + ": " + default_icon.GetValueString() + "\r\n" +
-                FolderIcon.KEY + ": " + folder_icon.GetValueString() + "\r\n" +
-                HoverBackground.KEY + ": " + hover_background.GetValueString() + "\r\n" +
-                "IconSize: " + IconSize + "\r\n";
+            return new string[] {
+                "Background: " + background,
+                "DefaultIcon: " + default_icon,
+                "FolderIcon: " + folder_icon,
+                "HoverBackground: " + hover_background,
+                "IconSize: " + default_icon.IconSize
+            };
         }
+
         /*!
-         * \return The value of the specified key, or null if the key is not associated with 
-         * any attribute.
+         * \return The value of the specified key, or an empty string if the key
+         * is not associated with any attribute.
          */
         public string GetValueString(string key)
         {
+            string result;
             switch (key)
             {
-                case Background.KEY:
-                    return background.GetValueString();
-                case DefaultIcon.KEY:
-                    return default_icon.GetValueString();
-                case FolderIcon.KEY:
-                    return folder_icon.GetValueString();
-                case HoverBackground.KEY:
-                    return hover_background.GetValueString();
+                case "Background":
+                    result = background.ToString();
+                    break;
+                case "DefaultIcon":
+                    result = default_icon.ToString();
+                    break;
+                case "FolderIcon":
+                    result = folder_icon.ToString();
+                    break;
+                case "HoverBackground":
+                    result = hover_background.ToString();
+                    break;
+                case "IconSize":
+                    result = default_icon.IconSize.ToString();
+                    break;
                 default:
-                    return null;
+                    result = "";
+                    break;
             }
+            return result;
         }
+
         /*!
          * Sets an attribute, obviously.
          * @param key Attribute to change. 
@@ -225,30 +189,31 @@ namespace WpfFiler
          */
         public bool SetAttribute(string key, string value)
         {
+            bool result = false;
             switch (key)
             {
-                case Background.KEY:
-                    background.SetValue(value);
+                case "Background":
+                    result = background.SetFromString(value);
                     break;
-                case DefaultIcon.KEY:
-                    default_icon.SetValue(value);
+                case "DefaultIcon":
+                    result = default_icon.SetFromString(value);
                     break;
-                case FolderIcon.KEY:
-                    folder_icon.SetValue(value);
+                case "FolderIcon":
+                    result = folder_icon.SetFromString(value);
                     break;
-                case HoverBackground.KEY:
-                    hover_background.SetValue(value);
+                case "HoverBackground":
+                    result = hover_background.SetFromString(value);
                     break;
                 case "IconSize":
-                    uint siz = 0;
-                    if (!uint.TryParse(value, out siz))
-                        return false;
-                    IconSize = siz;
+                    if (uint.TryParse(value, out uint siz))
+                    {
+                        default_icon.IconSize = siz;
+                        folder_icon.IconSize = siz;
+                        result = true;
+                    }
                     break;
-                default:
-                    return false;
             }
-            return true;
+            return result;
         }
     }
 }

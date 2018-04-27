@@ -2,18 +2,9 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
-//using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Security.AccessControl;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -154,7 +145,7 @@ namespace WpfFiler
         {
             // TO DO: 
             //          Account for forbidden folders/files
-            //          Add caching in some form. DB perhaps?
+            //          Add caching in some form.
             //
             //if(info.GetAccessControl())
             
