@@ -90,9 +90,5 @@ class CloseableTab : TabItem
             (Header as CloseableTabHeader).button_close.Visibility = Visibility.Hidden;
     }
 
-
-
-
-
 }
 

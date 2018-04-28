@@ -55,6 +55,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="FileButton.cs" />
     <Compile Include="RegistryException.cs" />
     <Compile Include="RegistryWrapper.cs" />
     <Compile Include="ShellNotification.cs" />
