@@ -56,9 +56,6 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="FileButton.cs" />
-    <Compile Include="RegistryException.cs" />
-    <Compile Include="RegistryWrapper.cs" />
-    <Compile Include="ShellNotification.cs" />
     <Compile Include="Win32API.cs" />
     <Page Include="CloseableTab.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -75,16 +72,12 @@
     <Compile Include="Attributes.cs" />
     <Compile Include="CloseableTab.xaml.cs" />
     <Compile Include="ConfigureWpfFiler.cs" />
-    <Compile Include="FileAssociationInfo.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ProgramAssociationInfo.cs" />
-    <Compile Include="ProgramIcon.cs" />
-    <Compile Include="ProgramVerb.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

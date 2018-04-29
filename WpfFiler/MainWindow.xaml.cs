@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -55,14 +56,26 @@ namespace WpfFiler
                     }
             saved_item = i;
 
-            CloseableTab tab = open_new_tab ? new CloseableTab() : Tabs.SelectedItem as CloseableTab;
-            if (i.Tag as DirectoryInfo != null)
-                Populate(tab, i.Tag as DirectoryInfo);
-            else if((i.Tag as DriveInfo).IsReady)
-                Populate(tab, (i.Tag as DriveInfo).RootDirectory);
-            if(open_new_tab)
+            CloseableTab tab;
+            if (open_new_tab || Tabs.SelectedItem == null)
+            {
+                tab = new CloseableTab();
                 Tabs.Items.Add(tab);
-            tab.Focus();
+            }
+            else
+                tab = Tabs.SelectedItem as CloseableTab;
+                DirectoryInfo info = null;
+            if (i.Tag as DirectoryInfo != null)
+                info = i.Tag as DirectoryInfo;
+            else if ((i.Tag as DriveInfo).IsReady)
+                info = (i.Tag as DriveInfo).RootDirectory;
+
+            if (info != null)
+            {
+                Populate(tab, info);
+                Title = info.Name;
+                tab.Focus();
+            }
         }
 
         /*
@@ -82,17 +95,14 @@ namespace WpfFiler
 
 
             tab.Title = info.Name;
-            tab.GetWrapPanel().Children.Clear();
+            tab.Panel.Children.Clear();
             foreach (FileSystemInfo file in info.GetFileSystemInfos())
             {
                 FileButton btn = new FileButton(file, config);
                 btn.MouseEnter += FileBtn_MouseEnter;
                 btn.MouseLeave += FileBtn_MouseLeave;
-                if ((file.Attributes & FileAttributes.Directory) == FileAttributes.Directory)
-                {
-                    btn.Click += FileBtn_Click;
-                }
-                tab.GetWrapPanel().Children.Add(btn);
+                btn.Click += FileBtn_Click;
+                tab.Panel.Children.Add(btn);
             }
         }
 
@@ -153,11 +163,18 @@ namespace WpfFiler
         private void FileBtn_Click(object sender, RoutedEventArgs e)
         {
             FileButton btn = sender as FileButton;
-            DirectoryInfo dir = new DirectoryInfo(btn.info.FullName);
-            WrapPanel wrap = btn.Parent as WrapPanel;
-            wrap.Children.Clear();
-            Populate(Tabs.SelectedItem as CloseableTab, dir);
-            Title = btn.info.Name;
+            if ((btn.info.Attributes & FileAttributes.Directory) == FileAttributes.Directory)
+            {
+                DirectoryInfo dir = new DirectoryInfo(btn.info.FullName);
+                WrapPanel wrap = btn.Parent as WrapPanel;
+                wrap.Children.Clear();
+                Populate(Tabs.SelectedItem as CloseableTab, dir);
+                Title = btn.info.Name;
+            }
+            else
+            {
+                Process.Start(btn.info.FullName);
+            }
         }
 
         private void Window_Closing(object sender, CancelEventArgs e)

@@ -74,7 +74,7 @@ namespace WpfFiler
         public virtual void Default()
         {
             path = "shell32.dll";
-            index = 1;
+            index = 0;
             IconSize = 64;
             SetIcon();
         }

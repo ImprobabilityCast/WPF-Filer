@@ -16,78 +16,86 @@ public partial class CloseableTabHeader : UserControl
 
 class CloseableTab : TabItem
 {
+    // properties
+    public WrapPanel Panel
+    {
+        get;
+        protected set;
+    }
+
+    public string Title
+    {
+        get { return (Header as CloseableTabHeader).TitleLabel.Content.ToString(); }
+        set { (Header as CloseableTabHeader).TitleLabel.Content = value; }
+    }
+
+    // constructors
+
     public CloseableTab()
     {
-        wpanel = new WrapPanel();
         Constructor();
     }
 
     public CloseableTab(Color background)
     {
-        wpanel = new WrapPanel();
-        wpanel.Background = new SolidColorBrush(background);
         Constructor();
+        Panel.Background = new SolidColorBrush(background);
     }
+
+    // helper methods
 
     private void Constructor()
     {
+        Panel = new WrapPanel();
         CloseableTabHeader header = new CloseableTabHeader();
         ScrollViewer sv = new ScrollViewer();
-        header.button_close.MouseEnter += new MouseEventHandler(button_close_mouse_enter);
-        header.button_close.MouseLeave += new MouseEventHandler(button_close_mouse_leave);
-        header.button_close.Click += new RoutedEventHandler(button_close_click);
-        header.label_title.SizeChanged += new SizeChangedEventHandler(label_title_size_changed);
+        header.CloseButton.MouseEnter += CloseButton_mouse_enter;
+        header.CloseButton.MouseLeave += CloseButton_mouse_leave;
+        header.CloseButton.Click += CloseButton_click;
+        header.TitleLabel.SizeChanged += TitleLabel_size_changed;
         Header = header;
-        sv.Content = wpanel;
+        sv.Content = Panel;
         Content = sv;
     }
-    private WrapPanel wpanel;
-    public WrapPanel GetWrapPanel() { return wpanel; }
 
-    public string Title
+    private void CloseButton_mouse_enter(object sender, MouseEventArgs e)
     {
-        get { return (Header as CloseableTabHeader).label_title.Content.ToString(); }
-        set { (Header as CloseableTabHeader).label_title.Content = value; }
+        (Header as CloseableTabHeader).CloseButton.Foreground = Brushes.Red;
     }
-
-    void button_close_mouse_enter(object sender, MouseEventArgs e)
+    private void CloseButton_mouse_leave(object sender, MouseEventArgs e)
     {
-        (Header as CloseableTabHeader).button_close.Foreground = Brushes.Red;
+        (Header as CloseableTabHeader).CloseButton.Foreground = Brushes.Black;
     }
-    void button_close_mouse_leave(object sender, MouseEventArgs e)
-    {
-        (Header as CloseableTabHeader).button_close.Foreground = Brushes.Black;
-    }
-    void button_close_click(object sender, RoutedEventArgs e)
+    private void CloseButton_click(object sender, RoutedEventArgs e)
     {
         (Parent as TabControl).Items.Remove(this);
     }
-    void label_title_size_changed(object sender, SizeChangedEventArgs e)
+    private void TitleLabel_size_changed(object sender, SizeChangedEventArgs e)
     {
-        (Header as CloseableTabHeader).button_close.Margin = new Thickness(
-        (Header as CloseableTabHeader).label_title.ActualWidth + 5, 3, 4, 0);
+        (Header as CloseableTabHeader).TitleLabel.Margin =
+            new Thickness((Header as CloseableTabHeader).TitleLabel.ActualWidth + 5, 3, 4, 0);
     }
 
     protected override void OnSelected(RoutedEventArgs e)
     {
         base.OnSelected(e);
-        (Header as CloseableTabHeader).button_close.Visibility = Visibility.Visible;
+        (Header as CloseableTabHeader).CloseButton.Visibility = Visibility.Visible;
     }
     protected override void OnUnselected(RoutedEventArgs e)
     {
         base.OnUnselected(e);
-        (Header as CloseableTabHeader).button_close.Visibility = Visibility.Hidden;
+        (Header as CloseableTabHeader).CloseButton.Visibility = Visibility.Hidden;
     }
     protected override void OnMouseEnter(MouseEventArgs e)
     {
         base.OnMouseEnter(e);
-        (Header as CloseableTabHeader).button_close.Visibility = Visibility.Visible;
+        (Header as CloseableTabHeader).CloseButton.Visibility = Visibility.Visible;
     }
     protected override void OnMouseLeave(MouseEventArgs e)
     {
         base.OnMouseLeave(e);
         if(!IsSelected)
-            (Header as CloseableTabHeader).button_close.Visibility = Visibility.Hidden;
+            (Header as CloseableTabHeader).CloseButton.Visibility = Visibility.Hidden;
     }
 
 }
