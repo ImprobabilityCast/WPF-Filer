@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 
 namespace WpfFiler
 {
@@ -13,10 +12,12 @@ namespace WpfFiler
     public class Background : IAttribute<SolidColorBrush>
     {
         public SolidColorBrush Value { get; set; }
+
         public Background()
         {
             Value = Brushes.White;
         }
+
         public Background(SolidColorBrush brush)
         {
             Value = brush;
@@ -38,66 +39,45 @@ namespace WpfFiler
         }
     }
     
-    public class DefaultIcon : IAttribute<System.Drawing.Icon>
+    public class IconHelper : IAttribute<System.Drawing.Icon>
     {
         protected string path;
         protected int index;
-        protected uint icon_size;
-
-        protected bool SetIcon()
-        {
-            System.Drawing.Icon ico = Win32API.ExtractIcon(path, index, true);
-            bool result = (ico != null);
-            if (result)
-                Value = ico;
-            return result;
-        }
-
-        /*!
-         * Setting this property will result in an attempt to load a new icon.
-         */
-        public uint IconSize
-        {
-            get { return icon_size; }
-            set
-            {
-                icon_size = value;
-                SetIcon();
-            }
-        }
         
         public System.Drawing.Icon Value { get; set; }
-        public DefaultIcon()
+
+        // private default constructor to prevent unintended initalization
+        private IconHelper() { }
+
+        public IconHelper(string icon_path, int idx)
         {
-            Default();
-        }
-        public virtual void Default()
-        {
-            path = "shell32.dll";
-            index = 0;
-            IconSize = 64;
-            SetIcon();
+            path = icon_path;
+            index = idx;
+            Value = Win32API.ExtractIcon(path, index, true);
         }
 
-        /*!
-         * Sets the icon for the class. The icon will have the size set by 'SetSize'
-         * or it will default to 64px. Invailid argumants will result in the default icon being set.
+        /*
+         * Sets the icon for the class. Invailid argumants will have no effect other than
+         * causing the method to return false.
          * @param value Expected value syntax: "path index". 
          * \return Returns false when invaild arguments are passed, true otherwise.
          */
         public bool SetFromString(string value)
         {
+            bool result = false;
             string[] array = value.Split(' ');
-            if((array.Length == 2) && int.TryParse(array[1], out index))
+            if((array.Length > 1) && int.TryParse(array[1], out index))
             {
                 path = array[0];
-                if (!SetIcon())
-                    Default();
-                else return true;
+                System.Drawing.Icon ico = Win32API.ExtractIcon(path, index, true);
+                if (ico != null)
+                {
+                    Value = ico;
+                    result = true;
+                }
+              
             }
-            else
-                Default();
-            return false;
+            return result;
         }
 
         public override string ToString()
@@ -106,27 +86,13 @@ namespace WpfFiler
         }
     }
 
-    public class FolderIcon : DefaultIcon
-    {
-        public FolderIcon()
-        {
-            Default();
-        }
-        public override void Default()
-        {
-            path = "shell32.dll";
-            index = 4;
-            IconSize = 64;
-            SetIcon();
-        }
-    }
-
     public class Attributes
     {
         public Background background;
-        public DefaultIcon default_icon;
-        public FolderIcon folder_icon;
+        public IconHelper default_icon;
+        public IconHelper folder_icon;
         public Background hover_background;
+        public UInt16 icon_size;
         
         
         /*!
@@ -136,8 +102,9 @@ namespace WpfFiler
         {
             background = new Background();
             hover_background = new Background(Brushes.AliceBlue);
-            default_icon = new DefaultIcon();
-            folder_icon = new FolderIcon();
+            default_icon = new IconHelper("shell32.dll", 0);
+            folder_icon = new IconHelper("shell32.dll", 4);
+            icon_size = 64;
         }
 
         public string[] GetAllAttributes()
@@ -147,7 +114,7 @@ namespace WpfFiler
                 "DefaultIcon: " + default_icon,
                 "FolderIcon: " + folder_icon,
                 "HoverBackground: " + hover_background,
-                "IconSize: " + default_icon.IconSize
+                "IconSize: " + icon_size
             };
         }
 
@@ -173,7 +140,7 @@ namespace WpfFiler
                     result = hover_background.ToString();
                     break;
                 case "IconSize":
-                    result = default_icon.IconSize.ToString();
+                    result = icon_size.ToString();
                     break;
                 default:
                     result = "";
@@ -205,12 +172,9 @@ namespace WpfFiler
                     result = hover_background.SetFromString(value);
                     break;
                 case "IconSize":
-                    if (uint.TryParse(value, out uint siz))
-                    {
-                        default_icon.IconSize = siz;
-                        folder_icon.IconSize = siz;
-                        result = true;
-                    }
+                    result = UInt16.TryParse(value, out UInt16 siz);
+                    if (result)
+                        icon_size = siz;
                     break;
             }
             return result;

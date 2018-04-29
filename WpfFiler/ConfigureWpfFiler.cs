@@ -4,7 +4,6 @@ using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 
 
 namespace WpfFiler
@@ -41,14 +40,10 @@ namespace WpfFiler
         {
             get { return attributes.hover_background.Value; }
         }
-        public uint IconSize
+        public UInt16 IconSize
         {
-            get { return attributes.default_icon.IconSize; }
-            set
-            {
-                attributes.default_icon.IconSize = value;
-                attributes.folder_icon.IconSize = value;
-            }
+            get { return attributes.icon_size; }
+            set { attributes.icon_size = value; }
         }
 
         public ConfigureWpfFiler()

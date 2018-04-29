@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-
 
 
 namespace WpfFiler
@@ -64,7 +60,8 @@ namespace WpfFiler
             }
             else
                 tab = Tabs.SelectedItem as CloseableTab;
-                DirectoryInfo info = null;
+
+            DirectoryInfo info = null;
             if (i.Tag as DirectoryInfo != null)
                 info = i.Tag as DirectoryInfo;
             else if ((i.Tag as DriveInfo).IsReady)
@@ -79,10 +76,6 @@ namespace WpfFiler
         }
 
         /*
-         * Creates a stack panel for each file or directory in the directory
-         * pointed to by @oaram info and inserts each one into @param tab.
-         * The stack panel contains the default file or directory icon and the file or
-         * directory name.
          * @param tab Closeable tab to populate
          * @param info DirectoryInfo object to get all the file and directory info from.
          */
@@ -109,7 +102,7 @@ namespace WpfFiler
         private void tv1_Expanded(object sender, RoutedEventArgs e)
         {
             TreeViewItem i = e.Source as TreeViewItem;
-            //i.IsSelected = true;
+
             if (i.Items.Count == 1 && i.Items[0] is string)
             {
                 i.Items.Clear();

@@ -1,12 +1,9 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 
-using BrendanGrant.Helpers.FileAssociation;
 
 namespace WpfFiler
 {
@@ -29,11 +26,11 @@ namespace WpfFiler
          * constructors
          */
 
-        // private constructor to prevent unintended initalization
+        // private default constructor to prevent unintended initalization
         private FileButton() { }
 
         // Aliases file
-        // does not modify config
+        // Does not modify config
         public FileButton(FileSystemInfo file, ConfigureWpfFiler config)
         {
             Margin = new Thickness(4);
@@ -66,37 +63,6 @@ namespace WpfFiler
          * protected helper methods 
          */
 
-        /*!
-        * \return This function will never return null.
-        */
-        protected static System.Drawing.Icon GetAssociatedIcon(string file,
-                ConfigureWpfFiler config, bool largeIcon)
-        {
-            return config.DefaultFileIcon;
-            /*
-            int dot = file.LastIndexOf('.');
-            if (dot == -1)
-                return config.DefaultFileIcon;
-            try
-            {
-                //FileAssociationInfo fai = new FileAssociationInfo(file.Substring(dot));
-                //ProgramAssociationInfo pai = new ProgramAssociationInfo(fai.ProgID);
-                //ProgramIcon icon = pai.DefaultIcon;
-                //ExtractIconEx(file, number, out large, out small, 1);
-                //System.Drawing.Icon ico = Win32API.ExtractIcon(icon.Path, icon.Index, largeIcon);
-                //System.Drawing.Icon ico = Win32API.ExtractIcon(file, 0, largeIcon);
-
-                if (ico == null)
-                    return config.DefaultFileIcon;
-                else
-                    return ico;
-            }
-            catch
-            {
-                return config.DefaultFileIcon;
-            }*/
-        }
-
         protected static Image GetImage(FileSystemInfo file, ConfigureWpfFiler config)
         {
             System.Drawing.Icon ico;
@@ -105,11 +71,7 @@ namespace WpfFiler
             if ((file.Attributes & FileAttributes.Directory) == FileAttributes.Directory)
                 ico = config.DefaultFolderIcon;
             else
-            {
-                //Win32API.SHGetFileInfo(file.FullName, 0, ref fInfo, (uint)Marshal.SizeOf(fInfo), 0);
-                ico = GetAssociatedIcon(file.Name, config, true);
-            }
-            //    ico = System.Drawing.Icon.ExtractAssociatedIcon(file.FullName);
+                ico = config.DefaultFileIcon;
 
             BitmapSource bmp = Imaging.CreateBitmapSourceFromHIcon(
                                         ico.Handle, Int32Rect.Empty,
