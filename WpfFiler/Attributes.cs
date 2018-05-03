@@ -33,6 +33,7 @@ namespace WpfFiler
                 Value = new SolidColorBrush(color);
             return (color != null);
         }
+
         public override string ToString()
         {
             return Value.ToString();
@@ -153,6 +154,7 @@ namespace WpfFiler
          * Sets an attribute, obviously.
          * @param key Attribute to change. 
          * @param value The new value.
+         * returns true if successful, false otherwise
          */
         public bool SetAttribute(string key, string value)
         {

@@ -13,47 +13,50 @@ namespace WpfFiler
     /// </summary>
     public partial class MainWindow : Window
     {
+        private ConfigureWpfFiler config;
 
         public MainWindow()
         {
             InitializeComponent();
-            DriveInfo[] drives = DriveInfo.GetDrives();
-            foreach(DriveInfo d in drives)
-                tv1.Items.Add(CreateTreeViewItem(d));
             config = new ConfigureWpfFiler();
             config.LoadConfiguration();
+            DriveInfo[] drives = DriveInfo.GetDrives();
+            foreach(DriveInfo d in drives)
+                Tree.Items.Add(CreateTreeViewItem(d));
             Tabs.Items.Add(new CloseableTab());
         }
 
-        private ConfigureWpfFiler config;
-
         private TreeViewItem CreateTreeViewItem(object o)
         {
+            Button btn = new Button();
+            btn.Content = o.ToString();
+            btn.BorderThickness = new Thickness(0);
+            btn.Background = config.BackgroundBrush;
+            btn.Click += Tree_Click;
+            btn.ContextMenuOpening += Tree_Click;
+            btn.Tag = o;
+
             TreeViewItem i = new TreeViewItem();
-            i.Header = o.ToString();
-            i.Tag = o;
-            i.MouseLeftButtonUp += tv1_item_MouseLeftButtonUp;
-            i.MouseRightButtonUp += tv1_item_MouseRightButtonUp;
+            i.Header = btn;
             i.Items.Add("Loading...");
+            i.Expanded += Tree_Expanded;
             return i;
         }
-
-        private object saved_item = null;
-        private void Click(object sender, bool open_new_tab = false)
+        
+        private void Tree_Click(object sender, RoutedEventArgs args)
         {
-            TreeViewItem i = (sender as TreeViewItem);
+            Button i = (sender as Button);
             // This bit here is to stop all the parent tree view items from opening new tabs
-            if (i.HasItems)
-                foreach (object a in i.Items)
-                    if (a == saved_item)
-                    {
-                        saved_item = i;
-                        return;
-                    }
-            saved_item = i;
+            foreach (CloseableTab t in Tabs.Items)
+                if (t.Title.Equals(i.Content))
+                {
+                    t.Focus();
+                    return;
+                }
 
             CloseableTab tab;
-            if (open_new_tab || Tabs.SelectedItem == null)
+            if (args.RoutedEvent.Name.Equals("ContextMenuOpening")
+                    || Tabs.SelectedItem == null)
             {
                 tab = new CloseableTab();
                 Tabs.Items.Add(tab);
@@ -71,6 +74,7 @@ namespace WpfFiler
             {
                 Populate(tab, info);
                 Title = info.Name;
+                LocationBox.Text = info.FullName;
                 tab.Focus();
             }
         }
@@ -86,8 +90,8 @@ namespace WpfFiler
             //          Add caching in some form.
             //
 
-
             tab.Title = info.Name;
+            LocationBox.Text = info.FullName;
             tab.Panel.Children.Clear();
             foreach (FileSystemInfo file in info.GetFileSystemInfos())
             {
@@ -99,48 +103,13 @@ namespace WpfFiler
             }
         }
 
-        private void tv1_Expanded(object sender, RoutedEventArgs e)
-        {
-            TreeViewItem i = e.Source as TreeViewItem;
-
-            if (i.Items.Count == 1 && i.Items[0] is string)
-            {
-                i.Items.Clear();
-                DirectoryInfo theDir = null;
-                if (i.Tag is DriveInfo)
-                {
-                    DriveInfo c = i.Tag as DriveInfo;
-                    if (c.IsReady)
-                        theDir = c.RootDirectory;
-                }
-                else if (i.Tag is DirectoryInfo)
-                    theDir = i.Tag as DirectoryInfo;
-                if (theDir != null)
-                {
-                    try
-                    {
-                        foreach (DirectoryInfo dir in theDir.GetDirectories())
-                            i.Items.Add(CreateTreeViewItem(dir));
-                    }
-                    catch { }
-                }
-            }
-        }
-
         private void Tabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (Tabs.SelectedItem is CloseableTab tab)
+            {
                 Title = tab.Title;
-        }
-
-        private void tv1_item_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            Click(sender, true);
-        }
-
-        private void tv1_item_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            Click(sender);
+                LocationBox.Text = tab.Title;
+            }
         }
 
         private void FileBtn_MouseEnter(object sender, MouseEventArgs e)
@@ -173,6 +142,35 @@ namespace WpfFiler
         private void Window_Closing(object sender, CancelEventArgs e)
         {
             config.SaveConfiguration();
+        }
+
+        private void Tree_Expanded(object sender, RoutedEventArgs e)
+        {
+            TreeViewItem i = e.Source as TreeViewItem;
+
+            if (i.Items.Count == 1 && i.Items[0] is string)
+            {
+                i.Items.Clear();
+                DirectoryInfo theDir = null;
+                object tag = (i.Header as Button).Tag;
+                if (tag is DriveInfo)
+                {
+                    DriveInfo c = tag as DriveInfo;
+                    if (c.IsReady)
+                        theDir = c.RootDirectory;
+                }
+                else if (tag is DirectoryInfo)
+                    theDir = tag as DirectoryInfo;
+                if (theDir != null)
+                {
+                    try
+                    {
+                        foreach (DirectoryInfo dir in theDir.GetDirectories())
+                            i.Items.Add(CreateTreeViewItem(dir));
+                    }
+                    catch { }
+                }
+            }
         }
     }
 }
